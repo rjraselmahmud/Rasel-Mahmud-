@@ -70,7 +70,7 @@ WELCOME TO 💖 ${threadName} 💖
 🥰 Hope you enjoy your time here!
 💬 Have a great & positive day! ✨
 ❖💙❖
-👤 Added By: ${event.author || "Admin"}  
+👤 Added By: ${authorName}  
 💎━━━━━━━━━━━━━━💎
 ~ BY: 𝐇𝐞𝐈𝐢•𝗟𝗨𝗠𝗢 💎✨
 📌 Command: ${global.config.PREFIX}help`;
