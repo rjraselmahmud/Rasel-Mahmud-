@@ -86,7 +86,7 @@ WELCOME TO 💖 {threadName} 💖
 🥰 Hope you enjoy your time here!
 💬 Have a great & positive day! ✨
 ❖💙❖
-👤 Added By: {addedBy}  
+👤 Added By: {addedByName}  
 💎━━━━━━━━━━━━━━💎
 ~ BY: 𝐇𝐞𝐈𝐢•𝗟𝗨𝗠𝗢 💎✨`;
 
