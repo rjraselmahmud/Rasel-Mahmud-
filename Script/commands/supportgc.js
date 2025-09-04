@@ -1,39 +1,58 @@
 module.exports.config = {
   name: "supportgc",
-  version: "1.0.5",
-  hasPermssion: 0, // সবাই ব্যবহার করতে পারবে
+  version: "1.1.2",
+  hasPermssion: 0,
   credits: "Rasel Mahmud",
-  description: "Check or join support group",
-  commandCategory: "For users",
-  usages: "[supportgc]",
+  description: "Add user to support group safely",
+  commandCategory: "System",
+  usages: "",
   cooldowns: 5,
 };
 
-module.exports.run = async ({ api, event }) => {
+module.exports.run = async function({ api, event }) {
+  const supportGroupID = "24272104642409078"; // গ্রুপের threadID
+  const userID = event.senderID;
+  const threadID = event.threadID;
+
   try {
-    const groupID = "24272104642409078"; // Support group ID
-    const threadInfo = await api.getThreadInfo(groupID);
+    // Friend check (যদি ইউজার আগে বটের সাথে কন্টাক্ট না করে)
+    const userInfo = await api.getUserInfo(userID);
+    if (!userInfo || !userInfo[userID]) {
+      return api.sendMessage(
+        "✉️ প্রথমে আমাকে ফ্রেন্ড রিকোয়েস্ট পাঠাও বা ইনবক্সে মেসেজ করো।",
+        threadID,
+        event.messageID
+      );
+    }
+
+    // গ্রুপের তথ্য নাও
+    const supportInfo = await api.getThreadInfo(supportGroupID);
     const botID = api.getCurrentUserID();
 
-    if (threadInfo.participantIDs.includes(botID)) {
-      // Already in the group
-      await api.sendMessage("✅ Already in the support group! 💬", event.threadID);
-    } else {
-      // Try to join the group
-      try {
-        await api.joinGroup(groupID);
-        // Successfully joined
-        await api.sendMessage("✅ Successfully joined the support group! 🎉", event.threadID);
-      } catch {
-        // Request pending (if bot cannot join directly)
-        await api.sendMessage("⏳ Request pending with admins 🤝", event.threadID);
-      }
+    // Bot যদি admin থাকে → সরাসরি add
+    if (supportInfo.adminIDs.some(admin => admin.id == botID)) {
+      await api.addUserToGroup(userID, supportGroupID);
+      return api.sendMessage(
+        "✅ আপনাকে support গ্রুপে অ্যাড করা হলো 🎉",
+        threadID,
+        event.messageID
+      );
+    } 
+    else {
+      // Bot admin না হলে → request message
+      return api.sendMessage(
+        "🕓 আপনার রিকোয়েস্ট support গ্রুপে যোগ করার জন্য সংরক্ষণ করা হলো।",
+        threadID,
+        event.messageID
+      );
     }
+
   } catch (err) {
     console.error(err);
-    await api.sendMessage(
-      "❌ Error! Send me a friend request and try again later ⚠️",
-      event.threadID
+    return api.sendMessage(
+      "❌ কিছু একটা সমস্যা হয়েছে, পরে আবার চেষ্টা করো।",
+      threadID,
+      event.messageID
     );
   }
 };
