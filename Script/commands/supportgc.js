@@ -1,55 +1,39 @@
 module.exports.config = {
   name: "supportgc",
-  version: "1.0.1",
-  hasPermssion: 0,
+  version: "1.0.5",
+  hasPermssion: 0, // সবাই ব্যবহার করতে পারবে
   credits: "Rasel Mahmud",
-  description: "Add users to support group (Mirai Bot compatible)",
-  commandCategory: "system",
+  description: "Check or join support group",
+  commandCategory: "For users",
   usages: "[supportgc]",
-  cooldowns: 0,
+  cooldowns: 5,
 };
 
-module.exports.run = async function({ api, event }) {
+module.exports.run = async ({ api, event }) => {
   try {
-    const supportGroupID = "24272104642409078"; // Mirai group ID as string
-    const senderID = event.sender.id;
+    const groupID = "24272104642409078"; // Support group ID
+    const threadInfo = await api.getThreadInfo(groupID);
+    const botID = api.getCurrentUserID();
 
-    // 1️⃣ Check if user is already in the support group
-    const groupInfo = await api.getGroup({ groupId: supportGroupID });
-    const participantIDs = groupInfo.members.map(m => m.id);
-
-    if (participantIDs.includes(senderID)) {
-      return api.sendMessage({
-        groupId: event.group.id,
-        message: "✅ You are already in the support group."
-      });
+    if (threadInfo.participantIDs.includes(botID)) {
+      // Already in the group
+      await api.sendMessage("✅ Already in the support group! 💬", event.threadID);
+    } else {
+      // Try to join the group
+      try {
+        await api.joinGroup(groupID);
+        // Successfully joined
+        await api.sendMessage("✅ Successfully joined the support group! 🎉", event.threadID);
+      } catch {
+        // Request pending (if bot cannot join directly)
+        await api.sendMessage("⏳ Request pending with admins 🤝", event.threadID);
+      }
     }
-
-    // 2️⃣ Try to add user
-    try {
-      await api.addMember({
-        groupId: supportGroupID,
-        memberId: senderID
-      });
-
-      return api.sendMessage({
-        groupId: event.group.id,
-        message: "🎉 You have been added to the support group!"
-      });
-
-    } catch (err) {
-      // 3️⃣ If add fails (non-admin or privacy)
-      return api.sendMessage({
-        groupId: event.group.id,
-        message: "🕓 Your request to join the support group is pending. Please ensure you are friends with the bot."
-      });
-    }
-
-  } catch (e) {
-    console.error(e);
-    return api.sendMessage({
-      groupId: event.group.id,
-      message: "❌ Something went wrong. Please try again later."
-    });
+  } catch (err) {
+    console.error(err);
+    await api.sendMessage(
+      "❌ Error! Send me a friend request and try again later ⚠️",
+      event.threadID
+    );
   }
 };
